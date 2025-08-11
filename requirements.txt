@@ -1,0 +1,7 @@
+streamlit
+pandas
+pyvis
+spacy
+scikit-learn
+streamlit-gsheets
+gspread
