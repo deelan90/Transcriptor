@@ -7,7 +7,7 @@ import re
 from sklearn.feature_extraction.text import TfidfVectorizer
 from collections import Counter
 import spacy
-conn = st.connection("gsheets", type=GSheetsConnection)
+conn = st.connection("gsheets")
 
 
 # --- Page Configuration ---
