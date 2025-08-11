@@ -7,7 +7,7 @@ import re
 from sklearn.feature_extraction.text import TfidfVectorizer
 from collections import Counter
 import spacy
-from streamlit_gsheets import GSheetsConnection
+from st_gsheets_connection import GSheetsConnection
 
 # --- Page Configuration ---
 st.set_page_config(page_title="Transcript Analyzer", layout="wide")
