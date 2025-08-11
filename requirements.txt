@@ -6,3 +6,4 @@ scikit-learn
 streamlit-gsheets-connection
 gspread
 google-auth
+git+https://github.com/streamlit/gsheets-connection
