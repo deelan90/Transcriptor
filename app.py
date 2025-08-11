@@ -7,9 +7,23 @@ import re
 from sklearn.feature_extraction.text import TfidfVectorizer
 from collections import Counter
 import spacy
+import gspread
+from google.oauth2.service_account import Credentials
 from st_gsheets_connection import GSheetsConnection
 conn = st.connection("gsheets", type=GSheetsConnection)
 
+@st.cache_data(ttl=600)
+def load_data():
+    creds = Credentials.from_service_account_info(
+        st.secrets["gcp_service_account"],
+        scopes=["https://www.googleapis.com/auth/spreadsheets"]
+    )
+    client = gspread.authorize(creds)
+    sheet = client.open_by_url(st.secrets["sheet_url"])
+    df = pd.DataFrame(sheet.sheet1.get_all_records())
+    return df
+
+df = load_data()
 
 # --- Page Configuration ---
 st.set_page_config(page_title="Transcript Analyzer", layout="wide")
