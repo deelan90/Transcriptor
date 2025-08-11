@@ -14,8 +14,7 @@ conn = st.connection("gsheets", type=GSheetsConnection)
 st.set_page_config(page_title="Transcript Analyzer", layout="wide")
 
 # --- Google Sheets Connection ---
-# Note: You'll set up the connection details in Streamlit's secrets management
-conn = st.connection("gsheets", type=GSheetsConnection)
+conn = st.connection("gsheets")
 
 # --- NLP Model Loading ---
 # Load the spaCy model once
