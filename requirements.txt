@@ -4,5 +4,5 @@ pyvis
 spacy
 scikit-learn
 streamlit-gsheets-connection
-gspread 
+gspread
 google-auth
