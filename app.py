@@ -7,8 +7,7 @@ import re
 from sklearn.feature_extraction.text import TfidfVectorizer
 from collections import Counter
 import spacy
-# CORRECTED IMPORT STATEMENT: The two imports below were on the same line.
-from streamlit_gsheets import GSheetsConnection
+conn = st.connection("gsheets", type=GSheetsConnection)
 
 
 # --- Page Configuration ---
