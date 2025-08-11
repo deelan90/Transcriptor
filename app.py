@@ -6,7 +6,9 @@ import streamlit.components.v1 as components
 import re
 from sklearn.feature_extraction.text import TfidfVectorizer
 from collections import Counter
-import spacyfrom streamlit_gsheets import GSheetsConnection
+import spacy
+# CORRECTED IMPORT STATEMENT: The two imports below were on the same line.
+from streamlit_gsheets import GSheetsConnection
 
 
 # --- Page Configuration ---
@@ -39,7 +41,25 @@ def load_data():
 
 
 # --- Keyword Extraction Logic (Improved) ---
-STOPWORDS = set(['a', 'about', 'above', ...]) # Add all your stopwords here
+# CORRECTED STOPWORDS LIST: The '...' has been replaced with the full list.
+STOPWORDS = set([
+    'a', 'about', 'above', 'after', 'again', 'against', 'all', 'am', 'an', 'and', 'any', 'are', "aren't", 'as', 'at',
+    'be', 'because', 'been', 'before', 'being', 'below', 'between', 'both', 'but', 'by', 'can', "can't", 'cannot',
+    'com', 'could', "couldn't", 'did', "didn't", 'do', 'does', "doesn't", 'doing', 'don', "don't", 'down', 'during',
+    'each', 'else', 'ever', 'few', 'for', 'from', 'further', 'get', 'had', "hadn't", 'has', "hasn't", 'have', "haven't",
+    'having', 'he', "he'd", "he'll", "he's", 'her', 'here', "here's", 'hers', 'herself', 'him', 'himself', 'his', 'how',
+    "how's", 'http', 'i', "i'd", "i'll", "i'm", "i've", 'if', 'in', 'into', 'is', "isn't", 'it', "it's", 'its', 'itself',
+    'just', 'k', "let's", 'like', 'me', 'more', 'most', "mustn't", 'my', 'myself', 'no', 'nor', 'not', 'of', 'off', 'on',
+    'once', 'only', 'or', 'other', 'ought', 'our', 'ours', 'ourselves', 'out', 'over', 'own', 'r', 'said', 'same', 'say',
+    'says', 'shan', "shan't", 'she', "she'd", "she'll", "she's", 'should', "shouldn't", 'so', 'some', 'such', 'than',
+    'that', "that's", 'the', 'their', 'theirs', 'them', 'themselves', 'then', 'there', "there's", 'these', 'they',
+    "they'd", "they'll", "they're", "they've", 'this', 'those', 'through', 'to', 'too', 'under', 'until', 'up',
+    'very', 'was', "wasn't", 'we', "we'd", "we'll", "we're", "we've", 'were', "weren't", 'what', "what's", 'when',
+    "when's", 'where', "where's", 'which', 'while', 'who', "who's", 'whom', 'why', "why's", 'with', 'won', "won't",
+    'would', "wouldn't", 'www', 'you', "you'd", "you'll", "you're", "you've", 'your', 'yours', 'yourself',
+    'yourselves', 'um', 'uh', 'ah', 'er', 'like', 'you know', 'actually', 'basically', 'so', 'yeah', 'okay', 'right',
+    'well', 'truly', 'literally', 'honestly', 'gonna', 'wanna', 'gotta', 'kinda', 'sorta'
+])
 
 def preprocess_text(text):
     if not isinstance(text, str): return ""
@@ -58,7 +78,6 @@ def extract_keywords(text, max_keywords=7):
         tfidf_matrix = vectorizer.fit_transform([processed_text])
         feature_names = vectorizer.get_feature_names_out()
         
-        # Count frequencies of non-stop words to find meaningful terms
         word_counts = Counter(processed_text.split())
         meaningful_words = [word for word, count in word_counts.items() if count > 1]
         
@@ -118,4 +137,57 @@ else:
         except Exception as e:
             st.error(f"Could not generate graph: {e}")
 
-    # ... (rest of the pages: Transcript Table and Detailed View - no changes needed for these)
+    # RESTORED MISSING PAGES
+    elif page == "Transcript Table":
+        st.header("Transcripts Table")
+        st.write("Use the filters below to explore your transcripts.")
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            sentiment_filter = st.multiselect("Sentiment", options=df['sentiment'].unique(), default=df['sentiment'].unique())
+        with col2:
+            theme_filter = st.text_input("Filter by keyword or theme")
+        with col3:
+            min_words = st.number_input("Minimum Word Count", value=0, step=50)
+
+        filtered_df = df[df['sentiment'].isin(sentiment_filter) & (df['word_count'] >= min_words)]
+        if theme_filter:
+            filtered_df = filtered_df[
+                filtered_df['keywords'].str.contains(theme_filter, na=False, case=False) |
+                filtered_df['primary_theme'].str.contains(theme_filter, na=False, case=False)
+            ]
+        st.dataframe(filtered_df.sort_values(by='date', ascending=False))
+
+    elif page == "Detailed View":
+        st.header("Transcript Detail")
+        if not df.empty:
+            # Use a unique identifier for the selectbox key
+            selected_date = st.selectbox("Select a transcript by date", options=df['date'].unique(), key="transcript_selector")
+            record = df[df['date'] == selected_date].iloc[0]
+
+            st.subheader(record['short_title'])
+            st.markdown(f"**Date:** {record['date']} | **Word Count:** {record['word_count']} | **WPM:** {record['wpm']:.2f} | **Sentiment:** {record['sentiment']}")
+
+            try:
+                keywords = json.loads(record['keywords'])
+                st.markdown(f"**Keywords:** {', '.join(keywords)}")
+            except (json.JSONDecodeError, TypeError):
+                st.markdown("**Keywords:** Not available")
+
+            st.markdown("---")
+            st.markdown("#### Action Items")
+            try:
+                action_items = json.loads(record['action_items'])
+                if action_items:
+                    for item in action_items:
+                        st.markdown(f"- {item}")
+                else:
+                    st.write("No action items were extracted.")
+            except (json.JSONDecodeError, TypeError):
+                st.write("Could not parse action items.")
+
+            st.markdown("---")
+            st.markdown("#### Full Transcript")
+            st.text_area("Transcript", value=record['full_text'], height=400, key="full_transcript_text")
+        else:
+            st.warning("No transcripts available to display.")
