@@ -3,5 +3,4 @@ pandas
 pyvis
 spacy
 scikit-learn
-streamlit-gsheets-connection
 gspread
